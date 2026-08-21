@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base, SessionLocal
 from .seed import seed_agents
-from .routers import auth, agents, subscriptions, workflows
+from .routers import auth, agents, subscriptions, workflows, payments, admin, uploads
 
 # Create Database tables
 Base.metadata.create_all(bind=engine)
@@ -34,6 +34,10 @@ app.include_router(auth.router)
 app.include_router(agents.router)
 app.include_router(subscriptions.router)
 app.include_router(workflows.router)
+app.include_router(payments.router)
+app.include_router(admin.router)
+app.include_router(uploads.router)
+
 
 @app.get("/")
 def read_root():

@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from ..database import get_db
+from ..config import settings
 from .. import models, schemas, auth
 
 router = APIRouter(
@@ -12,15 +13,14 @@ router = APIRouter(
 
 @router.post("/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
 def register(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
-    # Check if user already exists
     existing_user = db.query(models.User).filter(models.User.email == user_in.email).first()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="A user with this email already exists"
         )
-    
-    # Simple rule: first user registered becomes admin (useful for testing/demo)
+
+    # First ever user becomes admin automatically (convenient for initial setup)
     total_users = db.query(models.User).count()
     role = "admin" if total_users == 0 else "user"
 
@@ -35,6 +35,44 @@ def register(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
     db.refresh(new_user)
     return new_user
 
+
+@router.post("/admin/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
+def register_admin(user_in: schemas.AdminRegisterRequest, db: Session = Depends(get_db)):
+    """
+    Register a new admin account.
+    Requires the ADMIN_SECRET_KEY to prevent unauthorized admin creation.
+    """
+    if user_in.admin_secret != settings.ADMIN_SECRET_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Clé secrète administrateur invalide."
+        )
+
+    existing_user = db.query(models.User).filter(models.User.email == user_in.email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Un compte avec cet email existe déjà."
+        )
+
+    if user_in.password != user_in.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Les mots de passe ne correspondent pas."
+        )
+
+    hashed_password = auth.get_password_hash(user_in.password)
+    new_admin = models.User(
+        email=user_in.email,
+        hashed_password=hashed_password,
+        role="admin"
+    )
+    db.add(new_admin)
+    db.commit()
+    db.refresh(new_admin)
+    return new_admin
+
+
 @router.post("/login", response_model=schemas.Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.email == form_data.username).first()
@@ -44,11 +82,12 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     access_token = auth.create_access_token(
         data={"sub": user.email, "id": user.id, "role": user.role}
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
 
 @router.get("/me", response_model=schemas.UserResponse)
 def get_me(current_user: models.User = Depends(auth.get_current_user)):

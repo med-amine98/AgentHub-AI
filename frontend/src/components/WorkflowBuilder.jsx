@@ -41,31 +41,35 @@ export default function WorkflowBuilder({ agents, onClose, onSave }) {
   };
 
   const handleSave = async () => {
-    if (!name) {
+    if (!name.trim()) {
       alert("Veuillez donner un nom au workflow");
       return;
     }
     
-    // Transform nodes and edges into the format expected by the API (wfSteps)
-    // This is a simplified transformation for demo purposes
-    // In a real n8n-like app, we'd traverse the graph from input to outputs
-    const steps = nodes
-      .filter(n => n.data.agentId)
-      .map(n => {
-        // Find incoming edges to map inputs
-        const incomingEdges = edges.filter(e => e.target === n.id);
-        const input_mappings = {};
-        
-        // For simplicity, we just map everything linearly or use dummy mappings
-        incomingEdges.forEach(e => {
-          input_mappings['input'] = `from_${e.source}`; 
+    const agentNodes = nodes
+      .filter(n => n.data && n.data.agentId)
+      .sort((a, b) => (a.position?.x || 0) - (b.position?.x || 0));
+
+    if (agentNodes.length === 0) {
+      alert("Veuillez ajouter au moins un agent sur le canvas.");
+      return;
+    }
+
+    const steps = agentNodes.map((n, idx) => {
+      const agentObj = agents.find(a => a.id === n.data.agentId);
+      const input_mappings = {};
+
+      if (agentObj && agentObj.input_schema) {
+        Object.keys(agentObj.input_schema).forEach(key => {
+          input_mappings[key] = key;
         });
-        
-        return {
-          agent_id: n.data.agentId,
-          input_mappings: input_mappings
-        };
-      });
+      }
+
+      return {
+        agent_id: n.data.agentId,
+        input_mappings: input_mappings
+      };
+    });
 
     try {
       setSubmitting(true);

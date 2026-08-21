@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Cpu, LogIn, LogOut, LayoutDashboard, Compass, User, CreditCard, Tag, Mail } from 'lucide-react';
+import { Cpu, LogIn, LogOut, LayoutDashboard, Compass, User, CreditCard, Tag, Mail, ShieldCheck } from 'lucide-react';
 import { api } from '../utils/api';
 
 export default function Navbar({ user, setUser }) {
@@ -91,6 +91,20 @@ export default function Navbar({ user, setUser }) {
                     <span className="hidden sm:inline">Paiement</span>
                   </Link>
 
+                  {user.role === 'admin' && (
+                    <Link
+                      to="/admin/dashboard"
+                      className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${
+                        isActive('/admin/dashboard') || isActive('/admin')
+                          ? 'text-white bg-red-600'
+                          : 'text-red-300 bg-red-950/60 border border-red-800/80 hover:bg-red-900/80 hover:text-white'
+                      }`}
+                    >
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      <span>Console Admin</span>
+                    </Link>
+                  )}
+
                   <div className="h-5 w-px bg-brand-700" />
 
                   {/* User Profile / Logout */}
@@ -99,7 +113,7 @@ export default function Navbar({ user, setUser }) {
                       <User className="h-3.5 w-3.5 mr-1.5 text-brand-300" />
                       <span className="truncate max-w-[150px] font-medium hidden lg:inline">{user.email}</span>
                       {user.role === 'admin' && (
-                        <span className="ml-1.5 text-[10px] bg-red-100 text-red-800 px-1.5 py-0.5 rounded font-bold uppercase">
+                        <span className="ml-1.5 text-[10px] bg-red-600 text-white px-1.5 py-0.5 rounded font-bold uppercase">
                           Admin
                         </span>
                       )}
@@ -107,7 +121,7 @@ export default function Navbar({ user, setUser }) {
 
                     <button
                       onClick={handleLogout}
-                      className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-red-500 hover:bg-red-900/10 transition-colors"
+                      className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-red-400 hover:bg-red-900/20 hover:text-red-300 transition-colors"
                     >
                       <LogOut className="h-4 w-4" />
                       <span className="hidden sm:inline">Déconnexion</span>

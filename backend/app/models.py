@@ -15,6 +15,8 @@ class User(Base):
     subscriptions = relationship("Subscription", back_populates="user", cascade="all, delete-orphan")
     usage_logs = relationship("UsageLog", back_populates="user", cascade="all, delete-orphan")
     workflows = relationship("Workflow", back_populates="user", cascade="all, delete-orphan")
+    files = relationship("UserFile", back_populates="user", cascade="all, delete-orphan")
+    sessions = relationship("AgentSession", back_populates="user", cascade="all, delete-orphan")
 
 class Agent(Base):
     __tablename__ = "agents"
@@ -33,6 +35,7 @@ class Agent(Base):
 
     subscriptions = relationship("Subscription", back_populates="agent", cascade="all, delete-orphan")
     usage_logs = relationship("UsageLog", back_populates="agent", cascade="all, delete-orphan")
+    sessions = relationship("AgentSession", back_populates="agent", cascade="all, delete-orphan")
 
 class Subscription(Base):
     __tablename__ = "subscriptions"
@@ -71,3 +74,38 @@ class Workflow(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     user = relationship("User", back_populates="workflows")
+
+
+class UserFile(Base):
+    """Stores files uploaded by users to be used as agent inputs."""
+    __tablename__ = "user_files"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    filename = Column(String(255), nullable=False)
+    original_name = Column(String(255), nullable=False)
+    mime_type = Column(String(100), nullable=True)
+    size_bytes = Column(Integer, default=0)
+    file_path = Column(String(500), nullable=False)
+    parsed_content = Column(Text, nullable=True)  # JSON or plain text extracted from file
+    uploaded_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    user = relationship("User", back_populates="files")
+
+
+class AgentSession(Base):
+    """Stores execution history per agent per user."""
+    __tablename__ = "agent_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    agent_id = Column(String(100), ForeignKey("agents.id"), nullable=False)
+    inputs = Column(JSON, nullable=True)
+    outputs = Column(JSON, nullable=True)
+    file_ids = Column(JSON, nullable=True)   # List of UserFile IDs used
+    cost = Column(Numeric(10, 4), default=0.0)
+    status = Column(String(50), default="success")  # success, error
+    executed_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    user = relationship("User", back_populates="sessions")
+    agent = relationship("Agent", back_populates="sessions")

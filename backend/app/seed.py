@@ -7,6 +7,18 @@ def seed_agents(db: Session):
     default_agents = [
         # === 1. FINANCE & BUSINESS ===
         {
+            "id": "finance-roi",
+            "name": "Calculateur de ROI & Rentabilité",
+            "description": "Calcul du retour sur investissement composé, seuil de rentabilité et projection financière.",
+            "category": "finance",
+            "tier": "premium",
+            "price_month": Decimal("19.99"),
+            "price_use": Decimal("0.05"),
+            "input_schema": {"investment_amount": {"type": "number", "label": "Montant investi (€)", "placeholder": "10000"}, "annual_return_rate": {"type": "number", "label": "Taux de rentabilité annuel (%)", "placeholder": "8"}, "years": {"type": "number", "label": "Nombre d'années", "placeholder": "3"}},
+            "output_schema": {"total_return": {"type": "number"}, "roi_percentage": {"type": "number"}, "summary": {"type": "string"}},
+            "system_prompt": "Tu es un expert financier spécialisé dans le calcul du ROI et la modélisation de rentabilité."
+        },
+        {
             "id": "finance-agent",
             "name": "Finance Agent",
             "description": "Analyse financière générale, trésorerie, dépenses, revenus et prévisions.",
@@ -154,6 +166,18 @@ def seed_agents(db: Session):
         },
 
         # === 3. MARKETING ===
+        {
+            "id": "marketing-slogan",
+            "name": "Générateur de Slogans & Pitch",
+            "description": "Création automatique de slogans percutants, phrases d'accroche et pitchs de vente.",
+            "category": "marketing",
+            "tier": "free",
+            "price_month": Decimal("0.00"),
+            "price_use": Decimal("0.00"),
+            "input_schema": {"company_name": {"type": "string", "label": "Nom de l'entreprise", "placeholder": "Nexora Corp"}, "product_desc": {"type": "string", "label": "Description du produit", "placeholder": "CRM intelligent"}},
+            "output_schema": {"slogans": {"type": "array"}, "pitch": {"type": "string"}},
+            "system_prompt": "Tu es un copywriter d'élite spécialisé dans les slogans et les pitchs commerciaux percutants."
+        },
         {
             "id": "marketing-agent",
             "name": "Marketing Agent",
@@ -645,6 +669,19 @@ def seed_agents(db: Session):
             "input_schema": {"incident": {"type": "string", "label": "Incident informatique", "placeholder": "Mon client VPN se déconnecte toutes les 10 minutes"}},
             "output_schema": {"troubleshooting_steps": {"type": "array"}},
             "system_prompt": "Tu es un technicien de support informatique Helpdesk niveau 2."
+        },
+        # === 10. TRANSLATION & LOCALIZATION ===
+        {
+            "id": "translator",
+            "name": "Traducteur Universel & Localisation",
+            "description": "Traduction professionnelle, adaptation culturelle et localisation multilingue haute fidélité.",
+            "category": "translation",
+            "tier": "premium",
+            "price_month": Decimal("14.99"),
+            "price_use": Decimal("0.02"),
+            "input_schema": {"text": {"type": "string", "label": "Texte à traduire", "placeholder": "Entrez votre texte ici..."}, "target_language": {"type": "string", "label": "Langue cible", "placeholder": "Anglais"}},
+            "output_schema": {"translated_text": {"type": "string"}, "source_language": {"type": "string"}, "target_language": {"type": "string"}},
+            "system_prompt": "Tu es un traducteur expert polyglotte et linguiste professionnel."
         }
     ]
 

@@ -52,12 +52,39 @@ class AgentResponse(AgentBase):
 
 class AgentExecuteInput(BaseModel):
     inputs: Dict[str, Any]
+    file_ids: Optional[List[int]] = []  # IDs of UserFile records to inject into this execution
 
 class AgentExecuteResponse(BaseModel):
     agent_id: str
     status: str
     output: Dict[str, Any]
     usage: Dict[str, Any]
+    session_id: Optional[int] = None
+
+# File upload schemas
+class UserFileResponse(BaseModel):
+    id: int
+    original_name: str
+    mime_type: Optional[str]
+    size_bytes: int
+    uploaded_at: datetime
+
+    class Config:
+        from_attributes = True
+
+# Agent session history schemas
+class AgentSessionResponse(BaseModel):
+    id: int
+    agent_id: str
+    inputs: Optional[Dict[str, Any]]
+    outputs: Optional[Dict[str, Any]]
+    file_ids: Optional[List[int]]
+    cost: float
+    status: str
+    executed_at: datetime
+
+    class Config:
+        from_attributes = True
 
 # Subscription schemas
 class SubscriptionBase(BaseModel):
@@ -126,3 +153,72 @@ class UsageLogResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# Admin schemas
+class AdminRegisterRequest(BaseModel):
+    email: EmailStr
+    password: str
+    confirm_password: str
+    admin_secret: str   # Must match settings.ADMIN_SECRET_KEY
+
+
+class UserAdminResponse(BaseModel):
+    id: int
+    email: str
+    role: str
+    created_at: datetime
+    subscription_count: int = 0
+    usage_count: int = 0
+
+    class Config:
+        from_attributes = True
+
+
+class PlatformStats(BaseModel):
+    total_users: int
+    total_agents: int
+    total_subscriptions: int
+    total_usage_calls: int
+    total_revenue_eur: float
+    users_this_month: int
+    calls_this_month: int
+
+
+class AgentAdminResponse(AgentBase):
+    created_at: datetime
+    subscription_count: int = 0
+    usage_count: int = 0
+
+    class Config:
+        from_attributes = True
+
+
+class UserRoleUpdate(BaseModel):
+    role: str  # 'admin' or 'user'
+
+
+class AgentUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[str] = None
+    tier: Optional[str] = None
+    price_month: Optional[Decimal] = None
+    price_use: Optional[Decimal] = None
+    input_schema: Optional[Dict[str, Any]] = None
+    output_schema: Optional[Dict[str, Any]] = None
+    system_prompt: Optional[str] = None
+
+
+class AdminUsageLogResponse(BaseModel):
+    id: int
+    user_id: int
+    user_email: Optional[str] = None
+    agent_id: str
+    tokens_or_calls: int
+    cost: float
+    timestamp: datetime
+
+    class Config:
+        from_attributes = True
+

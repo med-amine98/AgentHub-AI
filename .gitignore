@@ -1,0 +1,21 @@
+# Environment
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Node
+node_modules/
+
+# Frontend build
+dist/
+
+# Uploaded/generated files
+backend/uploads/
+
+# IDE
+.vscode/
+.idea/
