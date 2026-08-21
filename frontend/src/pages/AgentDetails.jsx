@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
 import { Play, Sparkles, CheckCircle2, AlertTriangle, ArrowLeft, Loader2, Star, ShieldCheck, CreditCard } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 export default function AgentDetails({ user }) {
   const { id } = useParams();
@@ -317,33 +318,44 @@ export default function AgentDetails({ user }) {
               </div>
               
               <div className="p-6 space-y-4">
-                {/* Dynamically format structured output */}
-                {Object.entries(executionResult.output).map(([key, val]) => (
-                  <div key={key} className="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
-                    <span className="text-xs text-gray-500 uppercase tracking-wider font-bold block mb-1">
-                      {key}
-                    </span>
-                    
-                    {Array.isArray(val) ? (
-                      <ul className="list-disc list-inside space-y-2 mt-1">
-                        {val.map((item, idx) => (
-                          <li key={idx} className="text-gray-800 text-sm font-medium">
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : typeof val === 'string' && val.startsWith('#') ? (
-                      /* If it's a markdown-like block */
-                      <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-sm text-gray-800 whitespace-pre-line font-serif leading-relaxed">
-                        {val}
-                      </div>
-                    ) : (
-                      <div className="text-gray-900 text-sm font-medium">
-                        {typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val)}
-                      </div>
-                    )}
+                {/* Dynamically format structured output or string */}
+                {typeof executionResult.output === 'string' ? (
+                  <div className="prose prose-sm max-w-none text-gray-800">
+                    <ReactMarkdown>{executionResult.output}</ReactMarkdown>
                   </div>
-                ))}
+                ) : executionResult.output.response ? (
+                  <div className="prose prose-sm max-w-none text-gray-800">
+                    <ReactMarkdown>{executionResult.output.response}</ReactMarkdown>
+                  </div>
+                ) : (
+                  Object.entries(executionResult.output).map(([key, val]) => (
+                    <div key={key} className="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
+                      <span className="text-xs text-gray-500 uppercase tracking-wider font-bold block mb-2">
+                        {key.replace(/_/g, ' ')}
+                      </span>
+                      
+                      {Array.isArray(val) ? (
+                        <ul className="list-disc list-inside space-y-1">
+                          {val.map((item, idx) => (
+                            <li key={idx} className="text-gray-800 text-sm font-medium">
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div className="prose prose-sm max-w-none text-gray-800">
+                          {typeof val === 'object' ? (
+                            <pre className="bg-gray-900 text-gray-100 p-4 rounded-xl text-xs overflow-x-auto">
+                              {JSON.stringify(val, null, 2)}
+                            </pre>
+                          ) : (
+                            <ReactMarkdown>{String(val)}</ReactMarkdown>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}

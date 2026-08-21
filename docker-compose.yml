@@ -30,6 +30,7 @@ services:
       - DATABASE_URL=mysql+pymysql://agenthub_user:agenthub_password@db:3306/agenthub
       - JWT_SECRET=supersecretjwtkeyforagenthubai2026
       - ACCESS_TOKEN_EXPIRE_MINUTES=120
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
     depends_on:
       db:
         condition: service_healthy

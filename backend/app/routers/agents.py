@@ -3,6 +3,10 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 import datetime
 from decimal import Decimal
+import os
+import json
+
+from google import genai
 
 from ..database import get_db
 from .. import models, schemas, auth
@@ -11,6 +15,42 @@ router = APIRouter(
     prefix="/api/agents",
     tags=["Agents"]
 )
+
+def gemini_execution(agent: models.Agent, inputs: dict) -> dict:
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        return None
+    
+    try:
+        client = genai.Client(api_key=api_key)
+        
+        prompt = f"Tu es un agent expert. Ton rôle est le suivant : {agent.description}\n\n"
+        prompt += f"Instructions strictes :\n{agent.system_prompt}\n\n"
+        prompt += "Voici les paramètres d'entrée pour la tâche que tu dois accomplir :\n"
+        for k, v in inputs.items():
+            prompt += f"- {k} : {v}\n"
+        
+        prompt += "\nRéponds de manière professionnelle et directe. Renvoie ta réponse au format JSON si possible, sinon en texte Markdown clair."
+        
+        response = client.models.generate_content(
+            model='gemini-2.5-pro',
+            contents=prompt,
+        )
+        
+        # Try to parse response as JSON
+        text = response.text
+        if text.startswith("```json"):
+            text = text[7:]
+        if text.endswith("```"):
+            text = text[:-3]
+        
+        try:
+            return json.loads(text.strip())
+        except json.JSONDecodeError:
+            return {"response": response.text}
+    except Exception as e:
+        print(f"Gemini execution error: {e}")
+        return None
 
 @router.get("", response_model=List[schemas.AgentResponse])
 def list_agents(
@@ -468,8 +508,10 @@ def execute_agent(
                 detail=f"Vous devez être abonné à l'agent '{agent.name}' pour l'utiliser."
             )
             
-    # Execute the simulation
-    output_data = simulate_agent_execution(agent_id, inputs_in.inputs)
+    # Execute the simulation or Gemini
+    output_data = gemini_execution(agent, inputs_in.inputs)
+    if not output_data:
+        output_data = simulate_agent_execution(agent_id, inputs_in.inputs)
     
     # Calculate dummy cost based on tier
     cost_map = {"free": 0.0, "premium": 0.05, "enterprise": 0.20}

@@ -5,6 +5,7 @@ import {
   Loader2, Cpu, ArrowRight, Layers, HelpCircle, FileText
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import WorkflowBuilder from '../components/WorkflowBuilder';
 
 export default function Dashboard({ user }) {
   const [activeTab, setActiveTab] = useState('subscriptions'); // 'subscriptions', 'workflows'
@@ -270,10 +271,10 @@ export default function Dashboard({ user }) {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {subscriptions.map((sub) => (
-                <div key={sub.id} className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 flex flex-col justify-between">
+                <div key={sub.id} className="bg-brand-50 border border-brand-200 rounded-xl p-6 flex flex-col justify-between">
                   <div>
                     <div className="flex justify-between items-center mb-3">
-                      <span className="text-xs uppercase bg-brand-50 text-brand-700 font-bold px-2 py-0.5 rounded border border-brand-100">
+                      <span className="text-xs uppercase bg-brand-100 text-brand-700 font-bold px-2 py-0.5 rounded border border-brand-200">
                         {sub.agent.category}
                       </span>
                       <span className="text-xs text-gray-500">
@@ -283,14 +284,14 @@ export default function Dashboard({ user }) {
                     <h3 className="font-bold text-gray-900 text-lg mb-1">{sub.agent.name}</h3>
                     <p className="text-gray-600 text-sm mb-6 line-clamp-2">{sub.agent.description}</p>
                   </div>
-                  <div className="flex items-center justify-between border-t border-gray-100 pt-4">
+                  <div className="flex items-center justify-between border-t border-brand-200 pt-4">
                     <span className="font-bold text-gray-900 text-sm">
                       {parseFloat(sub.agent.price_month)} € / mois
                     </span>
                     <div className="flex space-x-2">
                       <Link
                         to={`/agents/${sub.agent_id}`}
-                        className="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-bold rounded-lg transition-colors"
+                        className="px-3 py-1.5 bg-brand-100 hover:bg-brand-200 text-brand-700 text-xs font-bold rounded-lg transition-colors"
                       >
                         Ouvrir
                       </Link>
@@ -383,151 +384,7 @@ export default function Dashboard({ user }) {
 
           {/* Workflow Builder OR Execution Panel */}
           <div className="lg:col-span-2">
-            {showBuilder ? (
-              /* Builder Panel */
-              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 animate-fadeIn">
-                <h3 className="text-lg font-bold text-gray-900 mb-6">Créer un Workflow Multi-Agents</h3>
-                <form onSubmit={handleCreateWorkflow} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
-                        Nom du Workflow
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Ex: Campagne Marketing Global"
-                        value={newWfName}
-                        onChange={(e) => setNewWfName(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
-                        Description
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Ex: Génère slogans puis les traduit en anglais"
-                        value={newWfDesc}
-                        onChange={(e) => setNewWfDesc(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  <hr className="border-gray-200" />
-
-                  {/* Steps list */}
-                  <div className="space-y-6">
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-sm text-gray-800">Chaîne d'Agents</span>
-                      <button
-                        type="button"
-                        onClick={handleAddStep}
-                        className="text-xs bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold px-3 py-1.5 rounded-lg border border-brand-100 transition-colors flex items-center space-x-1"
-                      >
-                        <Plus className="h-3 w-3" />
-                        <span>Ajouter un Agent</span>
-                      </button>
-                    </div>
-
-                    {wfSteps.length === 0 ? (
-                      <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-xs text-gray-400">
-                        Ajoutez des agents pour définir les étapes séquentielles de traitement.
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {wfSteps.map((step, idx) => {
-                          const selectedAgentObj = agents.find(a => a.id === step.agent_id);
-                          return (
-                            <div key={idx} className="bg-gray-50 rounded-xl p-4 border border-gray-200 relative">
-                              <div className="flex justify-between items-center mb-3">
-                                <span className="text-xs bg-brand-500 text-white font-bold h-5 w-5 rounded-full flex items-center justify-center">
-                                  {idx + 1}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveStep(idx)}
-                                  className="text-xs text-red-500 hover:text-red-700 font-bold"
-                                >
-                                  Retirer
-                                </button>
-                              </div>
-
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Agent Select */}
-                                <div>
-                                  <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">
-                                    Sélectionner l'agent
-                                  </label>
-                                  <select
-                                    required
-                                    value={step.agent_id}
-                                    onChange={(e) => handleStepAgentChange(idx, e.target.value)}
-                                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs"
-                                  >
-                                    <option value="">-- Choisir un agent --</option>
-                                    {agents.map(a => (
-                                      <option key={a.id} value={a.id}>
-                                        {a.name} ({a.tier})
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-
-                                {/* Inputs Mappings display */}
-                                {selectedAgentObj && selectedAgentObj.input_schema && (
-                                  <div>
-                                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center">
-                                      <span>Mappage des Entrées</span>
-                                      <HelpCircle className="h-3 w-3 text-gray-400 ml-1 cursor-pointer" title="Liez l'entrée de cet agent à une variable de sortie des étapes précédentes ou de départ." />
-                                    </label>
-                                    <div className="space-y-2 max-h-[120px] overflow-y-auto">
-                                      {Object.keys(selectedAgentObj.input_schema).map((inputKey) => (
-                                        <div key={inputKey} className="flex items-center justify-between text-xs gap-2 bg-white border border-gray-100 p-2 rounded">
-                                          <span className="font-medium text-gray-700 truncate max-w-[80px]">{inputKey}</span>
-                                          <span className="text-gray-400">depuis</span>
-                                          <input
-                                            type="text"
-                                            required
-                                            value={step.input_mappings[inputKey] || ''}
-                                            onChange={(e) => handleMappingChange(idx, inputKey, e.target.value)}
-                                            placeholder="nom_du_champ"
-                                            className="px-2 py-1 bg-gray-50 border border-gray-300 rounded text-[11px] focus:outline-none w-[100px]"
-                                          />
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex space-x-3 pt-4 border-t border-gray-200">
-                    <button
-                      type="submit"
-                      disabled={submittingWf}
-                      className="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 disabled:bg-brand-400 text-white font-bold rounded-xl text-sm transition-all"
-                    >
-                      {submittingWf ? 'Enregistrement...' : 'Enregistrer le Workflow'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowBuilder(false)}
-                      className="px-5 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold rounded-xl text-sm transition-all"
-                    >
-                      Annuler
-                    </button>
-                  </div>
-                </form>
-              </div>
-            ) : runningWfId ? (
+            {runningWfId ? (
               /* Workflow Runner Panel */
               <div className="space-y-6">
                 <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
@@ -666,6 +523,18 @@ export default function Dashboard({ user }) {
             )}
           </div>
         </div>
+      )}
+
+      {/* RENDER WORKFLOW BUILDER AS FULL SCREEN MODAL */}
+      {showBuilder && (
+        <WorkflowBuilder
+          agents={agents}
+          onClose={() => setShowBuilder(false)}
+          onSave={(wf) => {
+            setWorkflows(prev => [wf, ...prev]);
+            setShowBuilder(false);
+          }}
+        />
       )}
     </div>
   );

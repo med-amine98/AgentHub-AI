@@ -7,6 +7,9 @@ import AgentDetails from './pages/AgentDetails';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Pricing from './pages/Pricing';
+import Payments from './pages/Payments';
+import Contact from './pages/Contact';
 import { api } from './utils/api';
 import { Loader2 } from 'lucide-react';
 
@@ -48,11 +51,18 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/catalog" element={<Catalog />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/agents/:id" element={<AgentDetails user={user} />} />
             
             <Route
               path="/dashboard"
               element={user ? <Dashboard user={user} /> : <Navigate to="/login" />}
+            />
+            
+            <Route
+              path="/payments"
+              element={user ? <Payments user={user} /> : <Navigate to="/login" />}
             />
             
             <Route
